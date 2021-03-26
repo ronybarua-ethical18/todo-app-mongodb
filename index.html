@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personal To Do App</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+    <!-- <link rel="stylesheet" href="style.css"> -->
+</head>
+
+<body id=" style-customization" class="bg-primary">
+    <div class="container mt-5">
+        <div class="row ">
+            <div class="col-md-6 offset-md-3 col-sm-12 border p-3 shadow">
+                <h2 class="display-4 text-center text-white">Plan for today</h2>
+                <form action="/addToList" method="post" class="form-inline d-flex justify-content-center mt-3 mb-3">
+                    <div class="form-group mx-sm-3 mb-2">
+                        <input type="text" name="plan" class="form-control" placeholder="your plan" required>
+                    </div>
+                    <button type="submit" class="btn btn-success mb-2">Add</button>
+                </form>
+                <div id="update" class="text-center text-white">
+
+                </div>
+                <div id="todo" class="text-white">
+                   
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const loadToDos = () => {
+            fetch(`/todos`)
+                .then(res => res.json())
+                .then(results => {
+                    const todo = document.getElementById('todo');
+                    todo.innerHTML = '';
+                    results.forEach(result => {
+                        const div = document.createElement('div');
+                        div.innerHTML = `<div class="shadow-lg border rounded mb-2 p-2 d-flex justify-content-lg-between align-items-center">
+                           <b class=""> ${result.plan}</b> 
+                           <div class="ml-auto">
+                             <button onclick="loadToDo('${result._id}')" class="btn btn-warning">Update</button>
+                             <button onclick="deleteToDos(event, '${result._id}')" class="btn btn-danger">Delete</button>
+                            </div>                           
+                            </div>`;
+                        todo.appendChild(div);
+                    });
+                })
+        }
+        loadToDos();
+
+        const loadToDo = id =>{
+            fetch(`/todo/${id}`)
+            .then(res =>  res.json())
+            .then(result => {
+                const update = document.getElementById('update');
+                update.innerHTML = `
+                <b>Update Id: ${result._id}</b>
+                <form class="form-inline d-flex justify-content-center mt-3 mb-3">
+                    <div class="form-group mx-sm-3 mb-2">
+                        <input type="text" value='${result.plan}' class="form-control" id="plan" required>
+                    </div>
+                    <button onclick="updateToDo('${result._id}')" type="submit" class="btn btn-warning mb-2">Modify</button>
+                </form>
+                `;
+            })
+        }
+        const updateToDo = id =>{
+            const plan = document.getElementById('plan').value;
+            const todo = {id, plan};
+            fetch(`/update/${id}`, {
+                method: 'PATCH',
+                headers:{'Content-Type': 'application/json'},
+                body:JSON.stringify(todo)
+            })
+            .then(res => res.json())
+            .then(result =>{
+                if(result){
+                    loadToDos();
+                    document.getElementById('update').innerHTML = '';
+                }
+            })
+        }
+        const deleteToDos = (event, id) =>{
+            fetch(`/delete/${id}`,{
+                method: "DELETE"
+            })
+            .then(res => res.json())
+            .then(result =>{
+                if(result){
+                    event.target.parentNode.parentNode.parentNode.style.display="none";
+                }
+            })
+        }
+    </script>
+</body>
+
+</html>
